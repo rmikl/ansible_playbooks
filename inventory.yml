@@ -1,0 +1,10 @@
+---
+all:
+  hosts:
+    redhat:
+      ansible_host: 192.168.56.3
+    ubuntu:
+      ansible_host: 192.168.56.2
+  vars:
+    ansible_user: root
+
