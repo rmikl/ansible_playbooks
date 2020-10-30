@@ -1,13 +1,12 @@
   - name: remove old docker packages
     apt:
-      name: "{{ item }}"
+      name: 
+        - docker
+        - docker-engine
+        - docker.io
+        - containerd 
+        - runc      
       state: absent
-    with_items:
-      - docker
-      - docker-engine
-      - docker.io
-      - containerd 
-      - runc
 
   - name: update apt
     apt:
@@ -41,12 +40,11 @@
       
   - name: install docker packages 
     apt:
-      name: "{{ item }}"
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
       state: present
-    with_items:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
 
   - name: Make sure a service is running
     systemd:

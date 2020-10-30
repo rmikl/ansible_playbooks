@@ -22,25 +22,23 @@
 
   - name: remove old docker packages
     dnf:
-      name: "{{ item }}"
+      name: 
+        - docker 
+        - docker-engine
+        - docker-ce-cli
+        - docker-ce
       state: absent
-    with_items:
-      - docker 
-      - docker-engine
-      - docker-ce-cli
-      - docker-ce
 
   - name: install needed dependencies
     dnf:
-      name: "{{ item }}"
+      name: 
+        - lvm2
+        - device-mapper
+        - device-mapper-persistent-data
+        - device-mapper-event
+        - device-mapper-libs
+        - device-mapper-event-libs
       state: present
-    with_items:
-      - lvm2
-      - device-mapper
-      - device-mapper-persistent-data
-      - device-mapper-event
-      - device-mapper-libs
-      - device-mapper-event-libs
 
   - name: install docker-ce
     command: dnf -y install docker-ce --nobest
