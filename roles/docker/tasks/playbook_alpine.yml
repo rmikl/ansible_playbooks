@@ -1,0 +1,47 @@
+  - name: add docker group
+    group:
+      state: present
+      gid: 150
+      name: docker
+  
+  - name: add dockeras user
+    user:
+      state: present
+      group: docker
+      name: dockeras
+  
+  - name: update apk repos
+    apk:
+      update_cache: yes
+
+  - name: add sudo package
+    apk:
+      name: sudo 
+      state: present
+  
+  - name: add entry docker to have passwordless sudo 
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      line: '%docker ALL=(ALL) NOPASSWD: ALL'
+      validate: visudo -cf %s
+  
+  - name: install dependencies for docker
+    apk:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - ca-certificates
+      - iptables
+      - so:libseccomp.so.2
+
+  - name: install docker
+    apk:  
+      name: docker
+      repository: http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
+      state: latest
+
+  - name: enable docker
+    service:
+      name: docker
+      state: started

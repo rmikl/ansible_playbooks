@@ -1,0 +1,11 @@
+- name: Install docker on debian / ubuntu
+  include: playbook_ubuntu.yml
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install docker on redhat / centos
+  include: playbook_redhat.yml
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' or ansible_distribution == 'RedHat'
+
+- name: Install docker on alpine
+  include: playbook_alpine.yml
+  when: ansible_distribution == 'Alpine' 
