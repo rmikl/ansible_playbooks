@@ -1,0 +1,11 @@
+
+  - name: run_docker_systemd
+    systemd:
+      name: docker
+      state: started
+
+  - name: run_docker_service
+    service:
+      name: docker
+      state: started
+  

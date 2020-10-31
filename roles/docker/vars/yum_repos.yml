@@ -1,0 +1,17 @@
+---
+repos:
+  - name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    file: docker-ce
+    enabled: true
+
+  - name: docker-ce-stable-debuginfo
+    description: Docker CE Stable - Debuginfo $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/debug-$basearch/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    file: docker-ce
+    enabled: false

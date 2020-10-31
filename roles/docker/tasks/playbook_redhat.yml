@@ -1,49 +1,41 @@
-  - name: add docker-ce-stable repo
+  - name: import yum repos ditionary
+    include_vars : yum_repos.yml
+   
+  - name: add "{{ item.name }}" repository
     yum_repository:
-      name: docker-ce-stable
-      description: Docker CE Stable - $basearch
-      baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
-      gpgcheck: true
-      gpgkey: https://download.docker.com/linux/centos/gpg
-      file: docker-ce
-      enabled: true
+      name: "{{ item.name }}"
+      description: "{{ item.description }}" 
+      baseurl: "{{ item.baseurl }}"
+      gpgcheck: "{{ item.gpgcheck }}"
+      gpgkey: "{{ item.gpgkey }}"
+      file: "{{ item.file }}"
+      enabled: "{{ item.enabled }}"
     become: true
-
-  - name: add docker-ce-stable-debuginfo  repo
-    yum_repository:
-      name: docker-ce-stable-debuginfo
-      description: Docker CE Stable - Debuginfo $basearch
-      baseurl: https://download.docker.com/linux/centos/$releasever/debug-$basearch/stable
-      gpgcheck: true
-      gpgkey: https://download.docker.com/linux/centos/gpg
-      file: docker-ce
-      enabled: false
-    become: true
+    loop: "{{ repos }}"
 
   - name: remove old docker packages
     dnf:
-      name: 
-        - docker 
-        - docker-engine
-        - docker-ce-cli
-        - docker-ce
+      name: "{{ item }}"
       state: absent
+    loop:
+      - docker 
+      - docker-engine
+      - docker-ce-cli
+      - docker-ce
 
   - name: install needed dependencies
     dnf:
-      name: 
-        - lvm2
-        - device-mapper
-        - device-mapper-persistent-data
-        - device-mapper-event
-        - device-mapper-libs
-        - device-mapper-event-libs
+      name: "{{ item }}" 
       state: present
-
+    loop:
+      - lvm2
+      - device-mapper
+      - device-mapper-persistent-data
+      - device-mapper-event
+      - device-mapper-libs
+      - device-mapper-event-libs
+  
   - name: install docker-ce
     command: dnf -y install docker-ce --nobest
+    notify: run_docker_systemd
 
-  - name: check is docker service is running
-    systemd:
-      name: docker
-      state: started

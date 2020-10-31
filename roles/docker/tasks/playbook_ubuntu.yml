@@ -1,12 +1,13 @@
   - name: remove old docker packages
     apt:
-      name: 
-        - docker
-        - docker-engine
-        - docker.io
-        - containerd 
-        - runc      
+      name: "{{ item }}"     
       state: absent
+    loop:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd 
+      - runc  
 
   - name: update apt
     apt:
@@ -16,7 +17,7 @@
     apt:
       name: "{{ item }}"
       state:  present
-    with_items:
+    loop:
       - apt-transport-https
       - ca-certificates
       - curl
@@ -40,13 +41,10 @@
       
   - name: install docker packages 
     apt:
-      name:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
+      name: "{{ item }}"
       state: present
-
-  - name: Make sure a service is running
-    systemd:
-      state: started
-      name: docker
+    loop:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    notify: run_docker_systemd

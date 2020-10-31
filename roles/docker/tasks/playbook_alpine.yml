@@ -19,28 +19,30 @@
       name: sudo 
       state: present
   
+  - name: create docker file in sudoers.d
+    file:
+      state: touch
+      path: /etc/sudoers.d/docker
+ 
   - name: add entry docker to have passwordless sudo 
     lineinfile:
-      dest: /etc/sudoers
+      dest: /etc/sudoers.d/docker
       state: present
       line: '%docker ALL=(ALL) NOPASSWD: ALL'
       validate: visudo -cf %s
   
   - name: install dependencies for docker
     apk:
-      name:
-        - ca-certificates
-        - iptables
-        - so:libseccomp.so.2      
+      name: "{{ item }}"   
       state: present
-
+    loop:  
+      - ca-certificates
+      - iptables
+      - so:libseccomp.so.2   
+      
   - name: install docker
     apk:  
       name: docker
       repository: http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
       state: latest
-
-  - name: enable docker
-    service:
-      name: docker
-      state: started
+    notify: run_docker_service
