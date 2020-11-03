@@ -7,5 +7,9 @@ all:
       ansible_host: 192.168.56.3
     alpine:
       ansible_host: 192.168.56.4
+    centos:
+      ansible_host: 192.168.56.5
+    debian:
+      ansible_host: 192.168.56.6
   vars:
     ansible_user: root

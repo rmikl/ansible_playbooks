@@ -17,6 +17,7 @@
     apt:
       name: "{{ item }}"
       state:  present
+      update_cache: yes
     loop:
       - apt-transport-https
       - ca-certificates
@@ -27,7 +28,7 @@
   - name: Add an Apt signing key
     apt_key:
       id: 0EBFCD88
-      url: https://download.docker.com/linux/ubuntu/gpg
+      url: https://download.docker.com/linux/{{ ansible_distribution |lower }}/gpg
       state: present
   
   - name: get lsb-release
@@ -36,7 +37,7 @@
 
   - name: add repository
     apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ result.stdout }} stable
+      repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution |lower }} {{ result.stdout }} stable
       state: present
       
   - name: install docker packages 
