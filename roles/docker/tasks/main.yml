@@ -1,3 +1,8 @@
-  - name: Install docker
-    include: "{{ ansible_pkg_mgr }}.yml"
-    when: packages['docker'] is not defined
+- name: check if docker exists docker
+  command: /usr/bin/docker --version
+  register: check_docker
+  ignore_errors: True
+
+- name: Install docker
+  include: "{{ ansible_pkg_mgr }}.yml"
+  when: "check_docker.rc != 0 "
