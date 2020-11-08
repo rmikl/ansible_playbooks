@@ -23,8 +23,6 @@
   loop: 
     - nagcmd
     - nagios
-  tags:
-    - exec
     
 - name: Create nagios User
   user:
@@ -35,16 +33,15 @@
     - nagcmd
     - nagios
 
-- name: create user
+- name: Create nagiosadmin User
   user:
-    name: "{{ item.name }}"
-    state: "{{ item.state }}"
-    group: "{{ item.group }}"
-  loop:
-    - { name: 'nagios', state: 'present', group: 'nagios' }
-    - { name: 'nagiosadmin', state: 'present', group: 'nagios' }
-  tags: 
-    - exec 
+    name: nagiosadmin
+    groups: "{{ item }}"
+    state: present
+  loop: 
+    - nagcmd
+    - nagios
+  
 
 - name: Add apache to nagcmd group
   user:
@@ -96,14 +93,10 @@
 
 - name: include nagios password
   include_vars: nagios_password.yml   
-  tags:
-    - exec 
-
+ 
 - name: Setup apache authentication for user nagiosadmin
   htpasswd:
     path: /usr/local/nagios/etc/htpasswd.users
     name: nagiosadmin
-    password: "test123"
+    password: "{{ password }}"
     create: yes
-  tags: 
-    - exec
