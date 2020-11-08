@@ -5,4 +5,4 @@
 
 - name: Install docker
   include: "{{ ansible_pkg_mgr }}.yml"
-  when: "check_docker.rc != 0 "
+  when: "check_docker.rc != 0"

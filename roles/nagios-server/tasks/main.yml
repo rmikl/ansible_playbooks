@@ -1,0 +1,3 @@
+
+- name: Install nagios core
+  include: dnf.yml
