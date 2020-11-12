@@ -1,20 +1,61 @@
-- name: Install Required Dependencies dnf
-  dnf:
-    state: present
-    name: "{{ item }}"
+- name: Delete file for fixing bad proxy
+  file:
+    name: /var/lib/apt/lists/
+    state: absent
+
+- name: Create folder /var/lib/apt/lists/  for fixing bad proxy
+  file:
+    name: /var/lib/apt/lists/
+    state: directory
+  
+- name: Create file /etc/apt/apt.conf.d/99fixbadproxy and folder  for fixing bad proxy
+  file:
+    name: /etc/apt/apt.conf.d/99fixbadproxy
+    state: touch
+
+- name: Fix bad proxy for apt packges
+  lineinfile:
+    path: /etc/apt/apt.conf.d/99fixbadproxy
+    line: "{{ item }}"
+    create: yes
   loop:
-    - httpd
-    - httpd-tools
+    - Acquire::http::Pipeline-Depth 0;
+    - Acquire::http::No-Cache true;
+    - Acquire::BrokenProxy true;
+
+- name: apt clean
+  apt:
+    autoclean: yes
+
+- name: apt update
+  apt:
+    update_cache: yes
+    dpkg_options: "Acquire::CompressionTypes::Order::=gz"
+
+
+- name: Install libgd-dev, python-passlib
+  apt:
+    allow_unauthenticated: yes
+    update_cache: yes
+    name: "{{ item }}"
+    state: present
+    install_recommends: yes
+  loop:
+    - php-gd
+    - libgd-dev
+    - python3-passlib
+    - python-passlib
+    - php
+    - apache2
+    - apache2-utils
     - php
     - gcc
-    - glibc-common
-    - gd
-    - gd-devel
-    - make
-    - net-snmp
+    - glibc-source
+    - snmp
     - unzip
     - tar
     - curl
+    - fcgiwrap
 
 - name: Get latest nagios-core version
   include: common.yml
@@ -27,6 +68,9 @@
 - name: Set facts to download nagios_core and nagios_plugins
   include: common.yml
   tags: set_facts_to_download_nagios_core_and_nagios_plugins
+
+- name: import repos ditionary
+  include_vars : nagios_version.yml
 
 - name: Create groups nagcmd nagios
   include: common.yml
@@ -46,7 +90,7 @@
 
 - name: Unpack nagios core and plugins latest version
   include: common.yml
-  tags: unpack_nagios_core_and_plugins_latest_version
+  tags: Unpack nagios core and plugins latest version
 
 - name: Prepare nagios core makefile 
   include: common.yml
@@ -72,28 +116,16 @@
   include: common.yml
   tags: compile_nagios_plugins_installator
 
-- name: Stop firewalld
-  systemd: 
-    state: stopped
-    name: firewalld
+- name: Enable the Apache2 module cgi
+  apache2_module:
+    state: present
+    name: cgi
 
-- name:  Add nagios to firewalld rules  
-  firewalld:
-    zone: public
-    service: http
-    permanent: yes
-    state: enabled
-
-- name: Start firewalld  
-  systemd:
-    state: started
-    name: firewalld
-
-- name: Restart httpd
+- name: Restart apache2
   systemd:
     state: restarted
     daemon_reload: yes
-    name: httpd
+    name: apache2
 
 - name: Check nagios config
   include: common.yml

@@ -1,6 +1,8 @@
 ---
 - hosts: 
-    - centos
     - redhat
+    - centos
+    - ubuntu
+    - debian
   roles:
     - role: nagios-server
