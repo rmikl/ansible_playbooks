@@ -1,3 +1,8 @@
+- name: check if nagios exists 
+  command: systemctl status nagios
+  register: check_nagios
+  ignore_errors: True
 
-- name: Install nagios core
-  include: dnf.yml
+- name: Install nagios
+  include: "{{ ansible_pkg_mgr }}.yml"
+  when: "check_nagios.rc != 0"

@@ -1,0 +1,141 @@
+- name: Get latest nagios-core version
+  shell: curl -s https://www.nagios.org/projects/nagios-core/history/4x/ | grep -i fixes -B 1  | grep "<h2>" | awk -F"&" '{print $1}' | awk -F">" '{print $2}'  | head -n1 | tr -d ' '
+  register: nagios_core_version
+  ignore_errors: true
+  tags:
+    - get_latest_nagios-core_version
+
+- name: Get latest package of nagios plugin
+  shell: curl -s https://www.nagios.org/downloads/nagios-plugins/ | grep "Latest" | awk -F"<*>" '{print $3}' | awk -F"<" '{print $1}' |  awk -F".tar.gz" '{print $1}' | tr -d ' '
+  register: nagios_plugins_package
+  ignore_errors: true
+  tags:
+    -  get_latest_package_of_nagios_plugin
+
+- name: Set facts to download nagios_core and nagios_plugins  
+  set_fact:
+    nagios_plugins={{ nagios_plugins_package.stdout | trim }}
+    nagios_core={{ nagios_core_version.stdout | trim }}
+  tags:
+    - set_facts_to_download_nagios_core_and_nagios_plugins 
+  
+- name: Create groups nagcmd nagios
+  group:
+    name: "{{ item }}"
+    state: present
+  loop: 
+    - nagcmd
+    - nagios
+  tags:
+    - create_groups_nagcmd_nagios
+    
+- name: Create nagios User
+  user:
+    name: nagios
+    groups: "{{ item }}"
+    state: present
+  loop: 
+    - nagcmd
+    - nagios
+  tags: 
+    - create_magios_user
+
+- name: Create nagiosadmin User
+  user:
+    name: nagiosadmin
+    groups: "{{ item }}"
+    state: present
+  loop: 
+    - nagcmd
+    - nagios
+  tags:
+    - create_nagios_admin_user
+  
+- name: Add apache to nagcmd group
+  user:
+    name: apache
+    group: nagcmd
+    state: present 
+  tags:
+    - add_apache_to_nagcmd
+
+- name: import repos ditionary
+  include_vars : nagios_version.yml
+
+- name: Unpack nagios core and plugins latest version
+  unarchive:
+    remote_src: yes
+    src: "{{ item.src }}"
+    dest: /root/
+    validate_certs: no
+  loop: "{{ nagios_packages }}"
+  tags:
+    - unpack_nagios_core_and_plugins_latest_version
+
+- name: Prepare nagios core makefile 
+  shell: cd ./nagios-{{ nagios_core | trim }}; ./configure --with-command-group=nagcmd
+  tags: 
+    - prepare_nagios_core_makefile 
+
+- name: Compile nagios core installator
+  make:
+    chdir: ./nagios-{{ nagios_core | trim }}
+    target: "{{ item }}"
+  become: yes
+  loop:
+    - all
+    - install
+    - install-init
+    - install-daemoninit
+    - install-config
+    - install-commandmode
+    - install-exfoliation
+    - install-webconf
+  tags:
+    - compile_nagios_core_installator
+
+- name: include nagios password
+  include_vars: nagios_password.yml   
+  tags:
+    - include_nagios_password
+
+- name: Setup apache authentication for user nagiosadmin
+  htpasswd:
+    path: /usr/local/nagios/etc/htpasswd.users
+    name: nagiosadmin
+    password: "{{ password }}"
+    create: yes
+  tags: 
+    - setup_apache_authentication_for_user_nagiosadmin
+
+- name: Prepare nagios plugins makefile 
+  shell: cd ./{{ nagios_plugins_package.stdout | trim }}; ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+  tags:
+    - prepare_nagios_plugins_makefile
+
+- name: Compile nagios plugins installator
+  make:
+    chdir: ./{{ nagios_plugins_package.stdout | trim }}
+    target: "{{ item }}"
+  become: yes
+  loop:
+    - all
+    - install
+  tags:
+    - compile_nagios_plugins_installator
+
+- name: Check nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: check_nagios
+  ignore_errors: True
+  tags:
+    - check_nagios_config
+
+- name: Start nagios service
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: nagios
+  when: "check_nagios.rc == 0"
+  tags:
+    - start_nagios_service
