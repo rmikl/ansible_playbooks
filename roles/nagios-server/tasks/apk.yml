@@ -1,0 +1,84 @@
+- name: Install needed apk packages
+  apk:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apache2
+    - apache2-utils
+    - unzip
+    - tar
+    - curl
+    - fcgiwrap
+    - wget
+    - ca-certificates 
+    - gcc
+    - build-base
+    - make
+
+- name: Add users needed for nagios alpine
+  shell: "{{ item }}"
+  loop:
+    - adduser nagios -D
+    - adduser nagcmd -D
+    - addgroup nagios nagcmd
+    - addgroup nagcmd nagios
+    - addgroup apache nagcmd
+  when: ansible_pkg_mgr == 'apk'
+
+- name: Download PHP certificate
+  get_url:
+    url: https://repos.php.earth/alpine/phpearth.rsa.pub
+    dest: /etc/apk/keys/phpearth.rsa.pub
+    
+- name: Add php repository
+  lineinfile:
+    line: https://repos.php.earth/alpine/v3.7 
+    path: /etc/apk/repositories
+
+- name: Install php 
+  apk:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - php
+    - php-gd
+    - perl
+    - php-apache2
+    - apache-mod-fcgid
+    - php7.1-cgi
+    - apache2-mod-wsgi
+
+- name: Install passlib
+  pip:
+    name: passlib  
+
+- name: Install Nagios core and plugins from makefile
+  include_tasks: common.yml  
+   
+- name: Check nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: check_nagios
+  ignore_errors: True
+
+- name: Start nagios service
+  service:
+    state: started
+    name: nagios
+  when: "check_nagios.rc == 0"
+
+- name: Enable cgi module
+  lineinfile:
+    path: /etc/apache2/httpd.conf
+    regexp: '#LoadModule cgi_module modules/mod_cgi.so'
+    line: LoadModule cgi_module modules/mod_cgi.so
+
+- name: Direct to nagios cgi script 
+  lineinfile:
+    path: /etc/apache2/httpd.conf
+    regexp: 'ScriptAlias /cgi-bin/'
+    line: ScriptAlias /cgi-bin/ "/usr/local/nagios/sbin/"
+
+- name: Restart service httpd
+  service:
+    name: apache2
+    state: restarted

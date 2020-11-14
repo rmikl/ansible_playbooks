@@ -1,7 +1,8 @@
 ---
 - hosts: 
-    - redhat
+    - alpine
     - centos
+    - redhat
     - ubuntu
     - debian
   roles:
