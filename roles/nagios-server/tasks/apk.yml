@@ -14,6 +14,8 @@
     - gcc
     - build-base
     - make
+    - nagios-plugins-all
+    
 
 - name: Add users needed for nagios alpine
   shell: "{{ item }}"
@@ -60,9 +62,21 @@
   register: check_nagios
   ignore_errors: True
 
+- name: Delete custom folder for nagios plugins
+  file:
+    path: /usr/local/nagios/libexec
+    state: absent
+
+- name: Create a symbolic link nagios plugins
+  file:
+    dest: /usr/local/nagios/libexec
+    src: /usr/lib/nagios/plugins/ 
+    state: link
+    owner: nagios
+
 - name: Start nagios service
   service:
-    state: started
+    state: restarted
     name: nagios
   when: "check_nagios.rc == 0"
 
