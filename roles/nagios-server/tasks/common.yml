@@ -43,6 +43,7 @@
     dest: /root/
     validate_certs: no
   loop: "{{ nagios_packages }}"
+  when: ansible_pkg_mgr != "apk" or 'lugin' not in item.src 
  
 - name: Prepare nagios core makefile 
   shell: cd ./nagios-{{ nagios_core | trim }}; ./configure --with-command-group=nagcmd
@@ -74,6 +75,7 @@
 
 - name: Prepare nagios plugins makefile 
   shell: cd ./{{ nagios_plugins_package.stdout | trim }}; ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+  when: ansible_pkg_mgr != "apk"  
 
 - name: Compile nagios plugins installator
   make:
