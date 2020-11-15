@@ -1,0 +1,11 @@
+---
+- name: Check nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: check_nagios
+  ignore_errors: True
+
+- name: Start nagios service
+  systemd:
+    state: started
+    name: nagios
+  when: "check_nagios.rc == 0"

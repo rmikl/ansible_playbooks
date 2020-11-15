@@ -22,16 +22,15 @@
     - Acquire::http::Pipeline-Depth 0;
     - Acquire::http::No-Cache true;
     - Acquire::BrokenProxy true;
-
-- name: apt clean
+  
+- name: Apt clean
   apt:
     autoclean: yes
 
-- name: apt update
+- name: Apt update with dpkg options
   apt:
     update_cache: yes
     dpkg_options: "Acquire::CompressionTypes::Order::=gz"
-
 
 - name: Install libgd-dev, python-passlib
   apt:
@@ -57,64 +56,8 @@
     - curl
     - fcgiwrap
 
-- name: Get latest nagios-core version
-  include: common.yml
-  tags: get_latest_nagios-core_version
-
-- name:  Get latest package of nagios plugin
-  include: common.yml
-  tags: get_latest_package_of_nagios_plugin
-
-- name: Set facts to download nagios_core and nagios_plugins
-  include: common.yml
-  tags: set_facts_to_download_nagios_core_and_nagios_plugins
-
-- name: import repos ditionary
-  include_vars : nagios_version.yml
-
-- name: Create groups nagcmd nagios
-  include: common.yml
-  tags: create_groups_nagcmd_nagios
-
-- name: Create nagios user
-  include: common.yml
-  tags: create_magios_user
-
-- name: Create nagiosadmin user
-  include: common.yml
-  tags: create_nagiosadmin_user
-
-- name: Add apache to nagcmd group
-  include: common.yml
-  tags: add_apache_to_nagcmd
-
-- name: Unpack nagios core and plugins latest version
-  include: common.yml
-  tags: Unpack nagios core and plugins latest version
-
-- name: Prepare nagios core makefile 
-  include: common.yml
-  tags: prepare_nagios_core_makefile
-
-- name: Compile nagios core installator
-  include: common.yml
-  tags: compile_nagios_core_installator  
-
-- name: include nagios password
-  include: common.yml   
-  tags: include_nagios_password
-
-- name: Setup apache authentication for user nagiosadmin
-  include: common.yml
-  tags: setup_apache_authentication_for_user_nagiosadmin
-
-- name: Prepare nagios plugins makefile 
-  include: common.yml
-  tags: prepare_nagios_plugins_makefile
-
-- name: Compile nagios plugins installator
-  include: common.yml
-  tags: compile_nagios_plugins_installator
+- name: Install Nagios from makefile
+  include_tasks: common.yml  
 
 - name: Enable the Apache2 module cgi
   apache2_module:
@@ -128,9 +71,13 @@
     name: apache2
 
 - name: Check nagios config
-  include: common.yml
-  tags: check_nagios_config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: check_nagios
+  ignore_errors: True
 
 - name: Start nagios service
-  include: common.yml
-  tags: start_nagios_service
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: nagios
+  when: "check_nagios.rc == 0"

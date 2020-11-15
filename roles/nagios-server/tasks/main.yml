@@ -1,4 +1,4 @@
-- name: check if nagios exists 
+- name: check if nagios exists
   command: systemctl status nagios
   register: check_nagios
   ignore_errors: True
