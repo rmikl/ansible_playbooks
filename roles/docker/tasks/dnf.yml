@@ -13,20 +13,21 @@
     become: true
     loop: "{{ repos }}"
 
-  - name: remove old docker packages
-    dnf:
-      name: "{{ item }}"
-      state: absent
-    loop:
-      - docker 
-      - docker-engine
-      - docker-ce-cli
-      - docker-ce
+  - name: yum clean
+    shell: yum clean all
+
+  - name: subscription-manager refresh
+    shell: subscription-manager refresh
+    when: ansible_distribution == 'RedHat'
+
+  - name: yum clean
+    shell: yum update -y
 
   - name: install needed dependencies
     dnf:
       name: "{{ item }}" 
       state: present
+      validate_certs: no
     loop:
       - lvm2
       - device-mapper

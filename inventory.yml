@@ -1,15 +1,14 @@
----
-all:
-  hosts:
-    ubuntu:
-      ansible_host: 192.168.56.2
-    redhat:
-      ansible_host: 192.168.56.3
-    alpine:
-      ansible_host: 192.168.56.4
-    centos:
-      ansible_host: 192.168.56.5
-    debian:
-      ansible_host: 192.168.56.6
-  vars:
-    ansible_user: root
+
+ubuntu ansible_host=192.168.56.2
+alpine ansible_host=192.168.56.4
+redhat ansible_host=192.168.56.3
+centos ansible_host=192.168.56.5
+debian ansible_host=192.168.56.6
+
+[docker]
+redhat
+centos
+
+[nagios-server]
+
+[nrpe]

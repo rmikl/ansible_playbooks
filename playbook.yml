@@ -1,5 +1,5 @@
 ---
-- hosts: 
-    - alpine
-  roles:
-    - role: nagios-server
+- hosts: docker
+  tasks: 
+    - import_role:
+        name: docker 

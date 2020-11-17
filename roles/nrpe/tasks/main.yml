@@ -1,0 +1,5 @@
+- name: Check nagios server ip address
+  debug:
+    msg: System {{ hostvars['nagios-server']['ansible_host'] }}
+  
+
