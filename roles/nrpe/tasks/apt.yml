@@ -1,0 +1,22 @@
+- name: Install nrpe
+  apt: 
+    name: nagios-nrpe-server 
+    state: present
+
+- name: Add nagios server to nrpe config
+  lineinfile: 
+    regexp: "^allowed_hosts=*"
+    line: "allowed_hosts=127.0.0.1;{{ hostvars[groups['nagios-server'][0]].ansible_host }}"
+    path: /etc/nagios/nrpe.cfg
+
+#- name: add ip tables rule
+#  iptables: 
+#    source: "{{ hostvars[groups['nagios-server'][0]].ansible_host }}"
+#    source_port: "5666" 
+#    destination: "{{ hostvars[groups['nagios-server'][0]].ansible_host }}"
+#    destination_port: "5666" 
+
+- name: restart nrpe
+  systemd:
+    name: nagios-nrpe-server
+    state: restarted

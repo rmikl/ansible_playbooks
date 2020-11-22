@@ -1,5 +1,22 @@
 ---
-- hosts: docker
-  tasks: 
+- hosts: nagios-plugins
+  tasks:
     - import_role:
-        name: docker 
+        name: nagios-plugins
+
+- hosts: nagios-server
+  tasks:
+#    - import_role:
+#        name: nagios-server
+    - import_role:
+        name: nagios-server
+        tasks_from: add_nrpe_host
+
+- hosts: nrpe
+  tasks:
+    - import_role:
+        name: nrpe
+#- hosts: test
+#  tasks:
+#    - import_role:
+#        name: test

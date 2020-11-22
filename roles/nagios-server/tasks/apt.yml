@@ -1,37 +1,3 @@
-- name: Delete file for fixing bad proxy
-  file:
-    name: /var/lib/apt/lists/
-    state: absent
-
-- name: Create folder /var/lib/apt/lists/  for fixing bad proxy
-  file:
-    name: /var/lib/apt/lists/
-    state: directory
-  
-- name: Create file /etc/apt/apt.conf.d/99fixbadproxy and folder  for fixing bad proxy
-  file:
-    name: /etc/apt/apt.conf.d/99fixbadproxy
-    state: touch
-
-- name: Fix bad proxy for apt packges
-  lineinfile:
-    path: /etc/apt/apt.conf.d/99fixbadproxy
-    line: "{{ item }}"
-    create: yes
-  loop:
-    - Acquire::http::Pipeline-Depth 0;
-    - Acquire::http::No-Cache true;
-    - Acquire::BrokenProxy true;
-  
-- name: Apt clean
-  apt:
-    autoclean: yes
-
-- name: Apt update with dpkg options
-  apt:
-    update_cache: yes
-    dpkg_options: "Acquire::CompressionTypes::Order::=gz"
-
 - name: Install libgd-dev, python-passlib
   apt:
     allow_unauthenticated: yes
@@ -55,6 +21,7 @@
     - tar
     - curl
     - fcgiwrap
+    - sudo
 
 - name: Install Nagios from makefile
   include_tasks: common.yml  
@@ -81,3 +48,6 @@
     daemon_reload: yes
     name: nagios
   when: "check_nagios.rc == 0"
+
+- name: Add nagios agents to nagios server
+  include_tasks: add_nrpe_host.yml

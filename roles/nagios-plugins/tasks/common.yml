@@ -1,0 +1,45 @@
+- name: Add groups needed for nagios
+  group:
+    name: nagios
+    state: present
+
+- name: Add users needed for nagios common
+  user:
+    name: nagios
+    groups: nagios
+    state: present 
+
+- name: Get latest package of nagios plugin
+  shell: curl -s https://www.nagios.org/downloads/nagios-plugins/ | grep "Latest" | awk -F"<*>" '{print $3}' | awk -F"<" '{print $1}' |  awk -F".tar.gz" '{print $1}' | tr -d ' '
+  register: nagios_plugins_package
+  ignore_errors: true
+
+- name: Set facts to download nagios_core and nagios_plugins  
+  set_fact:
+    nagios_plugins={{ nagios_plugins_package.stdout | trim }}
+
+- name: import repos ditionary
+  include_vars : nagios_version.yml
+
+- name: Unpack nagios core and plugins latest version
+  unarchive:
+    remote_src: yes
+    src: "{{ item.src }}"
+    dest: /root/
+    validate_certs: no
+  loop: "{{ nagios_packages }}"
+  when: ansible_pkg_mgr != "apk" or 'lugin' not in item.src 
+
+- name: Prepare nagios plugins makefile 
+  shell: cd ./{{ nagios_plugins_package.stdout | trim }}; ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+  when: ansible_pkg_mgr != "apk"  
+
+- name: Compile nagios plugins installator
+  make:
+    chdir: ./{{ nagios_plugins_package.stdout | trim }}
+    target: "{{ item }}"
+  become: yes
+  loop:
+    - all
+    - install
+  when: ansible_pkg_mgr != "apk"

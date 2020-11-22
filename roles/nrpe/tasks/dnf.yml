@@ -1,0 +1,27 @@
+- name: Install nrpe from 
+  dnf: 
+    name: nrpe
+    state: present
+
+- name: Add nagios server to nrpe config
+  lineinfile: 
+    regexp: "^allowed_hosts=*"
+    line: "allowed_hosts=127.0.0.1, {{ hostvars[groups['nagios-server'][0]].ansible_host }}"
+    path: /etc/nagios/nrpe.cfg
+
+- name: Check if firewalld is enabled
+  command: systemctl status firewalld 
+  register: check_firewalld
+  ignore_errors: True
+
+- name: Add nrpe to firewalll rules
+  firewalld:
+    service: nrpe
+    permanent: yes
+    state: enabled
+  when: "check_firewalld.rc == 3"
+
+- name: Restart nrpe 
+  systemd:
+    name: nrpe
+    state: restarted

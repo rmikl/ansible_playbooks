@@ -1,0 +1,66 @@
+- name: Create folder with hosts in server
+  file:
+    name: /usr/local/nagios/hosts
+    state: directory
+
+- name: Create folder for host 
+  file:
+    name: "/usr/local/nagios/hosts/{{ item }}"
+    state: directory
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Copy config files from repo (hosts.cfg)
+  copy:
+    src: "{{ role_path }}/files/hosts.cfg"
+    dest: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Copy config files from repo
+  copy:
+    src: "{{ role_path }}/files/services.cfg"
+    dest: "/usr/local/nagios/hosts/{{ item }}/service-{{ item }}.cfg"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Modify config files with good info (hostname in hosts.cfg)
+  lineinfile:
+    path: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
+    regexp: "*HOSTNAME_TO_CHANGE*"
+    line: "\thost_name\t{{ item }}"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Modify config files with good info (IP)
+  lineinfile:
+    path: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
+    regexp: "*IP_TO_CHANGE*"
+    line: "\taddress\t{{  hostvars[item].ansible_env.SSH_CONNECTION.split(' ')[2] }}"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Modify config files with good info (hostname in services.cfg)
+  lineinfile:
+    path: "/usr/local/nagios/hosts/{{ item }}/service-{{ item }}.cfg"
+    regexp: "*HOSTNAME_TO_CHANGE*"
+    line: "\thost_name\t{{ item }}"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Check if nrpe check is in the main config file
+  command: grep check_nrpe /usr/local/nagios/etc/objects/commands.cfg
+  register: check_if_exist_in_config_file
+  ignore_errors: True
+
+- name: Add nrpe command definition if dont exists
+  lineinfile:
+    line: "define command\{\n\tcommand_name check_nrpe\n\tcommand_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ \n \}"
+  when: "check_if_exist_in_config_file.rc == 1"
+
+- name: Add config files to main config file
+  lineinfile:
+    path: /usr/local/nagios/etc/nagios.cfg
+    line: "cfg_file=/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg\ncfg_file=/usr/local/nagios/hosts/{{ item }}/service-{{ item }}.cfg"   
+  loop: "{{ groups['nrpe'] }}"
+
+
+    
+    
+
+
+

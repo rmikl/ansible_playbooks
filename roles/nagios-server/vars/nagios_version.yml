@@ -1,6 +1,3 @@
 nagios_packages:
   - name: Nagios Core
     src: "https://assets.nagios.com/downloads/nagioscore/releases/nagios-{{ nagios_core | trim }}.tar.gz"
-
-  - name: Nagios Plugins
-    src: "https://nagios-plugins.org/download/{{ nagios_plugins | trim }}.tar.gz"

@@ -1,0 +1,52 @@
+- name: Delete file for fixing bad proxy
+  file:
+    name: /var/lib/apt/lists/
+    state: absent
+
+- name: Create folder /var/lib/apt/lists/  for fixing bad proxy
+  file:
+    name: /var/lib/apt/lists/
+    state: directory
+  
+- name: Create file /etc/apt/apt.conf.d/99fixbadproxy and folder  for fixing bad proxy
+  file:
+    name: /etc/apt/apt.conf.d/99fixbadproxy
+    state: touch
+
+- name: Fix bad proxy for apt packges
+  lineinfile:
+    path: /etc/apt/apt.conf.d/99fixbadproxy
+    line: "{{ item }}"
+    create: yes
+  loop:
+    - Acquire::http::Pipeline-Depth 0;
+    - Acquire::http::No-Cache true;
+    - Acquire::BrokenProxy true;
+
+
+- name: Apt update with dpkg options
+  apt:
+    update_cache: yes
+    dpkg_options: "Acquire::CompressionTypes::Order::=gz"
+
+
+- name: Apt clean
+  apt:
+    autoclean: yes
+
+
+- name: Install packages
+  apt: 
+    name: "{{ item }}"
+    state: present
+  loop:
+    - wget
+    - make
+    - curl
+    - sudo
+    - tar
+
+- name: Install nagios plugins from makefile
+  include_tasks: common.yml  
+
+

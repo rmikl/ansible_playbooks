@@ -1,4 +1,13 @@
-- name: test
-  debug:
-    msg: test
-  
+#- name: list 1
+#  debug: 
+#    msg: "{{ groups['test'] }}"
+
+#- name: list2
+#  debug: 
+#    msg: "{%%}{{ groups['test'] | map('extract', hostvars, ['ansible_env', 'SSH_CONNECTION'])  }}"
+
+
+- name: list3
+  debug: 
+    msg: "{{  hostvars[item].ansible_env.SSH_CONNECTION.split(' ')[2] }}"
+  loop: "{{ groups['test'] }}"

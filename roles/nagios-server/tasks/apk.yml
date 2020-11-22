@@ -16,7 +16,6 @@
     - make
     - nagios-plugins-all
     
-
 - name: Add users needed for nagios alpine
   shell: "{{ item }}"
   loop:
@@ -49,6 +48,7 @@
     - apache-mod-fcgid
     - php7.1-cgi
     - apache2-mod-wsgi
+    - nrpe-plugin
 
 - name: Install passlib
   pip:
@@ -61,18 +61,6 @@
   command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
   register: check_nagios
   ignore_errors: True
-
-- name: Delete custom folder for nagios plugins
-  file:
-    path: /usr/local/nagios/libexec
-    state: absent
-
-- name: Create a symbolic link nagios plugins
-  file:
-    dest: /usr/local/nagios/libexec
-    src: /usr/lib/nagios/plugins/ 
-    state: link
-    owner: nagios
 
 - name: Start nagios service
   service:
@@ -96,3 +84,14 @@
   service:
     name: apache2
     state: restarted
+
+#- name: Delete folder inside  /usr/local/nagios/libexec
+#  file: 
+#    path:  /usr/local/nagios/libexec
+#    state: absent
+#
+#- name: Create a symbolic link nagios plugins
+#  file:
+#    dest: /usr/local/nagios/libexec
+#    src: /usr/lib/nagios/plugins
+#    state: link

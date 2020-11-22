@@ -1,5 +1,6 @@
-- name: Check nagios server ip address
-  debug:
-    msg: System {{ hostvars['nagios-server']['ansible_host'] }}
-  
-
+#- name: Install nrpe
+#  include: "{{ ansible_pkg_mgr }}.yml"
+#  
+- name: list 1
+  debug: 
+    msg: tralaalala

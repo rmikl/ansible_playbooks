@@ -1,0 +1,4 @@
+nagios_packages:
+  - name: Nagios Plugins
+    src: "https://nagios-plugins.org/download/{{ nagios_plugins | trim }}.tar.gz"
+
