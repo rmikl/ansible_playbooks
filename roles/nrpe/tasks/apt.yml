@@ -6,7 +6,13 @@
 - name: Add nagios server to nrpe config
   lineinfile: 
     regexp: "^allowed_hosts=*"
-    line: "allowed_hosts=127.0.0.1;{{ hostvars[groups['nagios-server'][0]].ansible_host }}"
+    line: "allowed_hosts=127.0.0.1,{{ hostvars[groups['nagios-server'][0]].ansible_host }}"
+    path: /etc/nagios/nrpe.cfg
+
+- name: Change nrpe address
+  lineinfile: 
+    regexp: "^server_address=*"
+    line: "server_address={{ ansible_host }}"
     path: /etc/nagios/nrpe.cfg
 
 #- name: add ip tables rule

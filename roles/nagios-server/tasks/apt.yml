@@ -51,3 +51,15 @@
 
 - name: Add nagios agents to nagios server
   include_tasks: add_nrpe_host.yml
+
+- name: Check nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: check_nagios
+  ignore_errors: True
+
+- name: Start nagios service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: nagios
+  when: "check_nagios.rc == 0"

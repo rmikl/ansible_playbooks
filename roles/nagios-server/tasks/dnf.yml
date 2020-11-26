@@ -55,7 +55,7 @@
 
 - name: Start nagios service
   systemd:
-    state: started
+    state: restarted
     daemon_reload: yes
     name: nagios
   when: "check_nagios.rc == 0"

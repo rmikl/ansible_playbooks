@@ -6,8 +6,11 @@
 
 - hosts: nagios-server
   tasks:
-#    - import_role:
-#        name: nagios-server
+    - import_role:
+        name: nagios-server
+
+- hosts: nagios-server
+  tasks:
     - import_role:
         name: nagios-server
         tasks_from: add_nrpe_host
@@ -16,6 +19,7 @@
   tasks:
     - import_role:
         name: nrpe
+        
 #- hosts: test
 #  tasks:
 #    - import_role:

@@ -1,7 +1,6 @@
 - name: Get latest nagios-core version
   shell: curl -s https://www.nagios.org/projects/nagios-core/history/4x/ | grep -i fixes -B 1  | grep "<h2>" | awk -F"&" '{print $1}' | awk -F">" '{print $2}'  | head -n1 | tr -d ' '
   register: nagios_core_version
-  ignore_errors: true
 
 - name: Set facts to download nagios_core and nagios_plugins  
   set_fact:

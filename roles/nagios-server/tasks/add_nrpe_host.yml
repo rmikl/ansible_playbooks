@@ -24,22 +24,36 @@
 - name: Modify config files with good info (hostname in hosts.cfg)
   lineinfile:
     path: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
-    regexp: "*HOSTNAME_TO_CHANGE*"
+    regexp: "HOSTNAME_TO_CHANGE"
     line: "\thost_name\t{{ item }}"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Modify config files with good info (name in hosts.cfg)
+  lineinfile:
+    path: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
+    regexp: "NAME_TO_CHANGE"
+    line: "\tname\t{{ item }}"
+  loop: "{{ groups['nrpe'] }}"
+
+- name: Modify config files with good info (use in hosts.cfg)
+  lineinfile:
+    path: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
+    regexp: "USE_TO_CHANGE"
+    line: "\tuse\t{{ item }}"
   loop: "{{ groups['nrpe'] }}"
 
 - name: Modify config files with good info (IP)
   lineinfile:
     path: "/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg"
-    regexp: "*IP_TO_CHANGE*"
+    regexp: "IP_TO_CHANGE"
     line: "\taddress\t{{  hostvars[item].ansible_env.SSH_CONNECTION.split(' ')[2] }}"
   loop: "{{ groups['nrpe'] }}"
 
 - name: Modify config files with good info (hostname in services.cfg)
-  lineinfile:
+  replace:
     path: "/usr/local/nagios/hosts/{{ item }}/service-{{ item }}.cfg"
-    regexp: "*HOSTNAME_TO_CHANGE*"
-    line: "\thost_name\t{{ item }}"
+    regexp: "host_name.*.HOSTNAME_TO_CHANGE"
+    replace: "\thost_name\t{{ item }}"
   loop: "{{ groups['nrpe'] }}"
 
 - name: Check if nrpe check is in the main config file
@@ -49,7 +63,8 @@
 
 - name: Add nrpe command definition if dont exists
   lineinfile:
-    line: "define command\{\n\tcommand_name check_nrpe\n\tcommand_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ \n \}"
+    path: /usr/local/nagios/etc/objects/commands.cfg
+    line: "define command{\n\tcommand_name check_nrpe\n\tcommand_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ \n }"
   when: "check_if_exist_in_config_file.rc == 1"
 
 - name: Add config files to main config file
@@ -58,9 +73,14 @@
     line: "cfg_file=/usr/local/nagios/hosts/{{ item }}/host-{{ item }}.cfg\ncfg_file=/usr/local/nagios/hosts/{{ item }}/service-{{ item }}.cfg"   
   loop: "{{ groups['nrpe'] }}"
 
+- name: Check nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: check_nagios
+  ignore_errors: True
 
-    
-    
-
-
-
+- name: Start nagios service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: nagios
+  when: "check_nagios.rc == 0"

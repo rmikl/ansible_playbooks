@@ -23,17 +23,14 @@
     - Acquire::http::No-Cache true;
     - Acquire::BrokenProxy true;
 
-
 - name: Apt update with dpkg options
   apt:
     update_cache: yes
     dpkg_options: "Acquire::CompressionTypes::Order::=gz"
 
-
 - name: Apt clean
   apt:
     autoclean: yes
-
 
 - name: Install packages
   apt: 
@@ -45,8 +42,14 @@
     - curl
     - sudo
     - tar
+    - grep
+    - nagios-nrpe-plugin
 
 - name: Install nagios plugins from makefile
   include_tasks: common.yml  
 
-
+- name: Create a symbolic link to check_nrpe
+  file:
+    src: /usr/lib/nagios/plugins/check_nrpe
+    dest: /usr/local/nagios/libexec/check_nrpe
+    state: link
