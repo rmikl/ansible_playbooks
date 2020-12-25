@@ -1,8 +1,8 @@
 ---
-- hosts: nagios-plugins
+- hosts: docker
   tasks:
     - import_role:
-        name: nagios-plugins
+        name: docker
 
 - hosts: nagios-server
   tasks:

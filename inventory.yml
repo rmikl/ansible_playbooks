@@ -1,27 +1,37 @@
 all:
   children:
-    nagios-plugins:   
+    docker:
       hosts:
         debian:
-          ansible_host: 192.168.56.6
-        centos:
-          ansible_host: 192.168.56.5
-        redhat:
-          ansible_host: 192.168.56.3
+          ansible_host: 192.168.123.5
         ubuntu:
-          ansible_host: 192.168.56.2
+          ansible_host: 192.168.123.3
+        centos:
+          ansible_host: 192.168.123.4
+        rhel:
+          ansible_host: 192.168.123.6
+    #    nagios-plugins:   
+    #  hosts:
+    #    debian:
+    #      ansible_host: 192.168.56.6
+    #    centos:
+    #      ansible_host: 192.168.56.5
+    #    redhat:
+    #      ansible_host: 192.168.56.3
+    #    ubuntu:
+    #      ansible_host: 192.168.56.2
   #      alpine:
   #        ansible_host: 192.168.56.4
-    nrpe:
-      hosts:
-        debian:
-          ansible_host: 192.168.56.6
+  #  nrpe:
+  #    hosts:
+  #      debian:
+  #        ansible_host: 192.168.56.6
   #      centos:
   #        ansible_host: 192.168.56.5
-        redhat:
-          ansible_host: 192.168.56.3
-        ubuntu:
-          ansible_host: 192.168.56.2
+  #      redhat:
+  #        ansible_host: 192.168.56.3
+  #      ubuntu:
+  #        ansible_host: 192.168.56.2
       #  alpine:
       #    ansible_host: 192.168.56.4      
 
@@ -29,8 +39,8 @@ all:
       hosts:
 #      debian:
 #        ansible_host: 192.168.56.6
-        centos:
-          ansible_host: 192.168.56.5
+#     centos:
+#        ansible_host: 192.168.56.5
 #      redhat:
 #        ansible_host: 192.168.56.3
 #      ubuntu:
