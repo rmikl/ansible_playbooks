@@ -53,7 +53,9 @@
   systemd: 
     state: stopped
     name: firewalld
-  when: "check_firewalld.rc == 3"
+  when: "check_firewalld.rc != 0"
+  ignore_errors: True
+
 
 - name: Add nrpe to firewalll rules
   firewalld:
@@ -61,11 +63,17 @@
     permanent: yes
     state: enabled
     zone: public
+  when: "check_firewalld.rc != 0"
+  ignore_errors: True
+
 
 - name: Start firewalld
   systemd:
     state: started
     name: firewalld
+  when: "check_firewalld.rc != 0"
+  ignore_errors: True
+
 
 - name: Create a symbolic link to check_nrpe
   file:

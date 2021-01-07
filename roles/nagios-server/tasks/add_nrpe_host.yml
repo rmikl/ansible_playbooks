@@ -56,6 +56,13 @@
     replace: "\thost_name\t{{ item }}"
   loop: "{{ groups['nrpe'] }}"
 
+- name: Modify config files with good info (ip in services.cfg)
+  replace:
+    path: "/usr/local/nagios/hosts/{{ item }}/service-{{ item }}.cfg"
+    regexp: "check_command.*.check_ssh!IP_TO_CHANGE"
+    replace: "check_command\tcheck_ssh!{{  hostvars[item].ansible_env.SSH_CONNECTION.split(' ')[2] }}"
+  loop: "{{ groups['nrpe'] }}"
+
 - name: Check if nrpe check is in the main config file
   command: grep check_nrpe /usr/local/nagios/etc/objects/commands.cfg
   register: check_if_exist_in_config_file
@@ -67,6 +74,13 @@
     line: "define command{\n\tcommand_name check_nrpe\n\tcommand_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ \n }"
   when: "check_if_exist_in_config_file.rc == 1"
 
+- name: Redefine check_ssh definition
+  lineinfile:
+    path: /usr/local/nagios/etc/objects/commands.cfg
+    regexp: "\\$USER1\\$/check_ssh \\$ARG1\\$ \\$HOSTADDRESS\\$"
+    line: command_line /usr/local/nagios/libexec/check_ssh $HOSTADDRESS$
+
+    ##TO DO DOUBLE LOOP 
 - name: Add config files to main config file
   lineinfile:
     path: /usr/local/nagios/etc/nagios.cfg

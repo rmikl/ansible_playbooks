@@ -16,6 +16,12 @@
     line: "server_address={{ ansible_host }}"
     path: /etc/nagios/nrpe.cfg
 
+- name: Replace location of plugins in nrpe config file 
+  replace:
+    path: /etc/nagios/nrpe.cfg
+    regexp: '\/usr\/lib64\/nagios\/plugins\/'
+    replace: '/usr/local/nagios/libexec/'
+
 - name: Restart nrpe 
   systemd:
     name: nrpe

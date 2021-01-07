@@ -1,13 +1,5 @@
-#- name: list 1
-#  debug: 
-#    msg: "{{ groups['test'] }}"
-
-#- name: list2
-#  debug: 
-#    msg: "{%%}{{ groups['test'] | map('extract', hostvars, ['ansible_env', 'SSH_CONNECTION'])  }}"
-
-
-- name: list3
-  debug: 
-    msg: "{{  hostvars[item].ansible_env.SSH_CONNECTION.split(' ')[2] }}"
-  loop: "{{ groups['test'] }}"
+- name: Redefine check_ssh definietion
+  lineinfile:
+    path: /usr/local/nagios/etc/objects/commands.cfg
+    regexp: "\\$USER1\\$/check_ssh \\$ARG1\\$ \\$HOSTADDRESS\\$"
+    line: \t/usr/local/nagios/libexec/check_ssh $HOSTADDRESS$

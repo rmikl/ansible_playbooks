@@ -1,3 +1,5 @@
+
+
 - name: Delete file for fixing bad proxy
   file:
     name: /var/lib/apt/lists/
