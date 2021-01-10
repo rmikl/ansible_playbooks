@@ -1,0 +1,6 @@
+- name: Redefine check disk in nrpe.cfg
+  lineinfile: 
+    regexp: "check_disk"
+ #   line: "command tarara "
+    line: 'command[check_disk]=/usr/local/nagios/libexec/check_disk -w 10% -c 5% -p /'
+    path: /etc/nagios/nrpe.cfg

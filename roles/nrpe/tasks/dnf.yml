@@ -22,6 +22,9 @@
     regexp: '\/usr\/lib64\/nagios\/plugins\/'
     replace: '/usr/local/nagios/libexec/'
 
+- name: Redifne commands in nrpe.cfg
+  include_tasks: common.yml  
+
 - name: Restart nrpe 
   systemd:
     name: nrpe

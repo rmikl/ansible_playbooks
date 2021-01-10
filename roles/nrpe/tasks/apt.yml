@@ -22,6 +22,9 @@
 #    destination: "{{ hostvars[groups['nagios-server'][0]].ansible_host }}"
 #    destination_port: "5666" 
 
+- name: Redifne commands in nrpe.cfg
+  include_tasks: common.yml  
+
 - name: restart nrpe
   systemd:
     name: nagios-nrpe-server

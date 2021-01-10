@@ -44,3 +44,9 @@
     - install
   when: ansible_pkg_mgr != "apk"
 
+- name: remove installation files
+  file:
+    path: /root/{{ nagios_plugins_package.stdout | trim }}
+    state: absent
+
+

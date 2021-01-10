@@ -65,3 +65,8 @@
     name: nagiosadmin
     password: "{{ password }}"
     create: yes
+
+- name: remove installation files
+  file:
+    path: /root/nagios-{{ nagios_core | trim }}
+    state: absent
