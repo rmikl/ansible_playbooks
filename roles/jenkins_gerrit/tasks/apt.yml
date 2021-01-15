@@ -1,0 +1,88 @@
+---
+- name: Delete file for fixing bad proxy
+  file:
+    name: /var/lib/apt/lists/
+    state: absent
+
+- name: Create folder /var/lib/apt/lists/  for fixing bad proxy
+  file:
+    name: /var/lib/apt/lists/
+    state: directory
+  
+- name: Create file /etc/apt/apt.conf.d/99fixbadproxy and folder  for fixing bad proxy
+  file:
+    name: /etc/apt/apt.conf.d/99fixbadproxy
+    state: touch
+
+- name: Fix bad proxy for apt packges
+  lineinfile:
+    path: /etc/apt/apt.conf.d/99fixbadproxy
+    line: "{{ item }}"
+    create: yes
+  loop:
+    - Acquire::http::Pipeline-Depth 0;
+    - Acquire::http::No-Cache true;
+    - Acquire::BrokenProxy true;
+
+- name: Apt update with dpkg options
+  apt:
+    update_cache: yes
+    dpkg_options: "Acquire::CompressionTypes::Order::=gz"
+
+- name: Apt clean
+  apt:
+    autoclean: yes
+
+- name: Install docker-compose
+  apt:
+    allow_unauthenticated: yes
+    update_cache: yes
+    name: "{{ item }}"
+    state: present
+    install_recommends: yes
+  loop:
+    - docker-compose
+
+- name: Create docker volumes
+  docker_volume:
+    name: "{{ item }}"
+  loop:
+    - jenkins_data
+    - gerrit_data
+
+- name: Create directory scheme
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /data
+    - /data/jenkins
+    - /data/gerrit
+    - /data/jenkins
+    - /data/jenkins/ext_config
+    - /data/docker
+
+- name: Create links to docker volumes 
+  ansible.builtin.file:
+    src: '/var/lib/docker/volumes/{{ item.src }}'
+    dest: '/data/{{ item.dest }}'
+    state: link
+  loop:
+    - { src: jenkins_data/_data, dest: jenkins/data }
+    - { src: gerrit_data/_data, dest: gerrit/data }
+
+- name: Copy docker compose file and service definition
+  copy:
+    src: "{{ role_path }}/files/{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop: 
+    - { src: "docker-compose.yml", dest: "/data/docker/docker-compose.yml"}
+    - { src: "jenkins_gerrit.service", dest: "/usr/lib/systemd/system/jenkins_gerrit.service"}
+    - { src: "jenkins_plugins.txt", dest: "/data/jenkins/ext_config/jenkins_plugins.txt" }
+    - { src: "casc.yml", dest: "/data/jenkins/ext_config/casc.yml" }
+
+- name: Create jenkins and gerrit service and start it
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: jenkins_gerrit

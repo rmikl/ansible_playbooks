@@ -4,6 +4,11 @@
     - import_role:
         name: docker
 
+- hosts: jenkins_gerrit
+  tasks:
+    - import_role:
+        name: jenkins_gerrit
+
 - hosts: nagios-plugins
   tasks:
     - import_role:

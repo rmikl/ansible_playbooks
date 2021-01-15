@@ -1,27 +1,32 @@
 all:
   children:
-    nagios-plugins:
+  #  nagios-plugins:
+  #    hosts:
+  #      debian:
+  #        ansible_host: 192.168.123.5
+  #      ubuntu:
+  #        ansible_host: 192.168.123.3
+  #      centos:
+  #        ansible_host: 192.168.123.4
+  #      rhel:
+  #        ansible_host: 192.168.123.6
+  #  nrpe:
+  #    hosts:
+  #      ubuntu:
+  #        ansible_host: 192.168.123.3
+  #      centos:
+  #        ansible_host: 192.168.123.4
+  #      rhel:
+  #        ansible_host: 192.168.123.6
+  #  nagios-server:
+  #    hosts:
+  #      debian:
+  #        ansible_host: 192.168.123.5 
+  #        
+    jenkins_gerrit:
       hosts:
-        debian:
-          ansible_host: 192.168.123.5
-        ubuntu:
-          ansible_host: 192.168.123.3
-        centos:
-          ansible_host: 192.168.123.4
-        rhel:
-          ansible_host: 192.168.123.6
-    nrpe:
-      hosts:
-        ubuntu:
-          ansible_host: 192.168.123.3
-        centos:
-          ansible_host: 192.168.123.4
-        rhel:
-          ansible_host: 192.168.123.6
-    nagios-server:
-      hosts:
-        debian:
-          ansible_host: 192.168.123.5 
+        jenkins_gerrit:
+          ansible_host: 192.168.123.2
   #  test:
   #    hosts:
   #      ubuntu:
