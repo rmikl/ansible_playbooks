@@ -1,0 +1,54 @@
+---
+- name: Install docker-compose
+  apt:
+    allow_unauthenticated: yes
+    update_cache: yes
+    name: "{{ item }}"
+    state: present
+    install_recommends: yes
+  loop:
+    - docker-compose
+
+- name: Create docker volumes
+  community.general.docker_volume:
+    name: "{{ item }}"
+  loop:
+    - jenkins_data
+    - gerrit_data
+
+- name: Create directory scheme
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /data
+    - /data/jenkins
+    - /data/gerrit
+    - /data/jenkins
+    - /data/docker
+
+###TO DO
+#- name: Create links to docker volumes 
+#  ansible.builtin.file:
+#    src: '{{ item.src }}'
+#    dest: '/data/{{ item.dest }}'
+#    state: link
+#  loop:
+#    - { src: volume_src, dest: jenkins/data }
+#    - { src: volume_src, dest: gerrit/data }
+#
+###TO DO
+#- name: Copy docker compose file and service definition
+#  copy:
+#    src: "{{ role_path }}/files/{{ item.src }}"
+#    dest: "{{ item.dest }}"
+#  loop: 
+#    - { src: "docker_compose.yml", dest: "/data/docker/docker_compose.yml" }
+#    - { src: "jenkins_gerrit.service", dest: "" }
+#    - { src: "start.sh", dest: "/data/docker/start.sh" }
+#
+#- name: Create jenkins and gerrit service
+#
+#- name: Start service
+#
+#- name: Check if service running 
