@@ -58,9 +58,8 @@
     - /data
     - /data/jenkins
     - /data/gerrit
-    - /data/jenkins
     - /data/jenkins/ext_config
-    - /data/docker
+    - /data/gerrit/ext_config
 
 - name: Create links to docker volumes 
   ansible.builtin.file:
@@ -75,14 +74,73 @@
   copy:
     src: "{{ role_path }}/files/{{ item.src }}"
     dest: "{{ item.dest }}"
-  loop: 
-    - { src: "docker-compose.yml", dest: "/data/docker/docker-compose.yml"}
-    - { src: "jenkins_gerrit.service", dest: "/usr/lib/systemd/system/jenkins_gerrit.service"}
-    - { src: "jenkins_plugins.txt", dest: "/data/jenkins/ext_config/jenkins_plugins.txt" }
-    - { src: "casc.yml", dest: "/data/jenkins/ext_config/casc.yml" }
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: "docker-compose-jenkins.yml", dest: "/data/jenkins/ext_config/docker-compose.yml", mode: "0644"}
+    - { src: "docker-compose-gerrit.yml", dest: "/data/gerrit/ext_config/docker-compose.yml", mode: "0644"}
+    ##JENKINS CONFIG FILES
+    - { src: "jenkins.service", dest: "/usr/lib/systemd/system/jenkins.service" , mode: "0644"}
+    - { src: "gerrit.service", dest: "/usr/lib/systemd/system/gerrit.service" , mode: "0644"}
+    - { src: "jenkins_plugins.txt", dest: "/data/jenkins/ext_config/jenkins_plugins.txt" , mode: "0644" }
+    - { src: "casc.yml", dest: "/data/jenkins/ext_config/casc.yml" , mode: "0644" }
+    - { src: "gerrit-trigger.xml", dest: "/data/jenkins/ext_config/gerrit-trigger.xml" , mode: "0644" }
+    ##GERRIT FILES
+    - { src: "gerrit.config", dest: "/data/gerrit/ext_config/gerrit.config" , mode: "0644" }
+    - { src: "secure.config", dest: "/data/gerrit/ext_config/secure.config" , mode: "0644" }
+    - { src: "Dockerfile", dest: "/data/gerrit/ext_config/Dockerfile"  , mode: "0644"}
+    - { src: "entrypoint.sh", dest: "/data/gerrit/ext_config/entrypoint.sh"  , mode: "0744"}
+    
+- name: Copy keys
+  copy:
+    src: "{{ item.src }}" 
+    dest: "{{ item.dest }}"
+  loop:
+    - { src: "/root/.ssh/id_rsa.pub", dest: "/data/gerrit/ext_config/id_rsa.pub" } 
+    - { src: "/root/.ssh/id_rsa", dest: "/data/jenkins/ext_config/id_rsa" } 
 
-- name: Create jenkins and gerrit service and start it
+- name: Modify config files with correct ip addres
+  replace:
+    path: "{{ item }}"
+    regexp: "IP_TO_CHANGE"
+    ## IT WILL RETURN IP ADDRES OF FIRST HOST IN GROUP 'jenkins_gerrit'
+    replace: "{{  hostvars[groups['jenkins_gerrit'][0]].ansible_env.SSH_CONNECTION.split(' ')[2] }}"
+  loop:
+    - /data/jenkins/ext_config/casc.yml
+    - /data/jenkins/ext_config/gerrit-trigger.xml
+    - /data/gerrit/ext_config/gerrit.config
+  ignore_errors: True
+
+- name: Build docker image based on Dockerfile in files
+  docker_image:
+    name: rmikl/gerrit:latest
+    build:
+      path: /data/gerrit/ext_config
+    source: build
+
+- name: Create gerrit service and start it
   systemd:
     state: started
     daemon_reload: yes
-    name: jenkins_gerrit
+    name: gerrit
+
+- name: Pause for 2 minutes to init app 
+  pause:
+    minutes: 2
+
+- name: Add ssh config to not ask for adding to known hosts
+  blockinfile:
+    path: /etc/ssh/ssh_config
+    state: present
+    block: |
+      Host localhost
+        StrictHostKeyChecking no
+        UserKnownHostsFile=/dev/null
+
+- name: Create jenkins users
+  command: bash -c "cat /root/.ssh/id_rsa.pub |  ssh -p 29418 admin@localhost gerrit create-account  --group Administrators  --full-name jenkins --email jenkins@jenkins --ssh-key - jenkins"
+
+- name: Create jenkins service and start it
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: jenkins

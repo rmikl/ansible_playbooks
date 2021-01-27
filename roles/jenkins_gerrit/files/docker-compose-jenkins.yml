@@ -1,20 +1,13 @@
 version: '2'
 
 services:
-  gerrit:
-    container_name: gerrit
-    image: gerritcodereview/gerrit
-    volumes:
-       - gerrit_data:/var/gerrit
-    ports:
-       - "29418:29418"
-       - "91:8080"
-
   jenkins:
     volumes:
      - /data/jenkins/ext_config/jenkins_plugins.txt:/var/jenkins_home/jenkins_plugins.txt
      - /data/jenkins/ext_config/casc.yml:/var/jenkins_home/casc.yml
      - jenkins_data:/var/jenkins_home
+     - /data/jenkins/ext_config/id_rsa:/var/jenkins_home/.ssh/id_rsa
+     - /data/jenkins/ext_config/gerrit-trigger.xml:/var/jenkins_home/gerrit-trigger.xml:rw
     container_name: jenkins
     image: jenkins/jenkins
     environment:
@@ -27,7 +20,5 @@ services:
        - "92:8080"
 
 volumes:
-  gerrit_data:
-    external: true
   jenkins_data:
     external: true

@@ -16,4 +16,4 @@ ssh-slaves:latest
 timestamper:latest
 workflow-aggregator:latest
 ws-cleanup:latest
-gerrit-code-review:latest
+gerrit-trigger:latest

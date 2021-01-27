@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  gerrit:
+    container_name: gerrit
+    image: rmikl/gerrit
+    volumes:
+       - gerrit_data:/data/gerrit
+    ports:
+       - "29418:29418"
+       - "91:8080"
+
+volumes:
+  gerrit_data:
+    external: true
