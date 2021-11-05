@@ -1,0 +1,8 @@
+- name: check if cluster exists
+  shell:  pvecm status | grep Error
+  register: check_cluster
+  ignore_errors: True
+
+- name: Create proxmox cluster
+  include: "{{ ansible_pkg_mgr }}.yml"
+  when: check_cluster.rc != 0

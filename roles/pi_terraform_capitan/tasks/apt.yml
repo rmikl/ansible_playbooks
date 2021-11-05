@@ -1,0 +1,33 @@
+- name: install unzip to install terraform
+  apt:
+    force_apt_get: yes
+    allow_unauthenticated: yes
+    name: "{{ item }}"
+    state: present
+    install_recommends: yes
+  loop:
+    - unzip
+    - git
+
+- name: download and copy terraform
+  unarchive:
+    src: https://releases.hashicorp.com/terraform/1.0.4/terraform_1.0.4_linux_arm64.zip
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: import username and pwd for proxmox api user
+  include_vars : ../../proxmox_config/vars/pv_users.yml
+
+- name: set username variables for terraform to comunicate with proxmox api 
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    regexp: "^PM_USER="
+    line: "PM_USER={{ pv_users[0].username }}\n"
+
+- name: set password variables for terraform to comunicate with proxmox api 
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    regexp: "^PM_PASS="
+    line: "PM_PASS={{ pv_users[0].password }}\n"

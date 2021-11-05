@@ -1,0 +1,2 @@
+- name: start assigning node to cluster
+  include: "{{ ansible_pkg_mgr }}.yml"

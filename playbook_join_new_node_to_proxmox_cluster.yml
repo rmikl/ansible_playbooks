@@ -1,0 +1,5 @@
+---
+- hosts: proxmox_node
+  tasks:
+    - import_role:
+        name: proxmox_node

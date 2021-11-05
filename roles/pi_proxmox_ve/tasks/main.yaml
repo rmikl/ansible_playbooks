@@ -1,0 +1,8 @@
+- name: check if pve exists
+  shell: apt list 2>/dev/null postfix | grep install
+  register: check_pve
+  ignore_errors: True
+
+- name: Install proxmox tools
+  include: "{{ ansible_pkg_mgr }}.yml"
+  when: "check_pve.rc != 0"

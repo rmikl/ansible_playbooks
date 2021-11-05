@@ -1,0 +1,8 @@
+- name: import repos ditionary
+  include_vars : ../../proxmox_config/vars/pv_users.yml
+
+- name: set password for root from vault
+  shell: |
+    echo "{{ item.password }}
+    {{ item.password }}" | pveum passwd {{ item.username }}
+  loop: "{{ pv_users }}"

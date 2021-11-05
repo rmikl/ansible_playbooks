@@ -1,0 +1,49 @@
+- name: set system hostname from inventory
+  hostname: 
+    name: "{{ inventory_hostname }}"
+
+- name: Replace a localhost entry with our own
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    line: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ inventory_hostname }}.com {{ inventory_hostname }}"
+ 
+- name: import repos ditionary
+  include_vars : env_vars.yml
+
+- name: populate /etc/environment
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value}}"
+  loop: "{{ os_environment }}"
+
+- name: get pve repos
+  apt_repository:
+    repo: 'deb http://download.proxmox.com/debian/pve buster pve-no-subscription'
+    state: present
+    update_cache: no
+
+- name: add keys to repo
+  apt_key:
+    state: present
+    url: http://download.proxmox.com/debian/proxmox-ve-release-6.x.gpg
+
+- name: apt full upgrade
+  apt:
+    upgrade: full
+    update_cache: yes
+    force_apt_get: yes
+
+- name: proxmox installation
+  apt:
+    force_apt_get: yes
+    allow_unauthenticated: yes
+    name: "{{ item }}"
+    state: present
+    install_recommends: yes
+  loop:
+    - proxmox-ve 
+    - postfix 
+    - open-iscsi

@@ -1,0 +1,22 @@
+---
+- hosts: proxmox_installation
+  tasks:
+    - import_role:
+        name: test_proxmox_ve
+    - import_role: 
+        name: proxmox_config
+
+- hosts: proxmox_cluster
+  tasks:
+    - import_role:
+        name: proxmox_cluster
+
+- hosts: proxmox_node
+  tasks:
+    - import_role:
+        name: proxmox_node
+
+- hosts: terraform_capitan
+  tasks:
+    - import_role:
+        name: pi_terraform_capitan

@@ -1,0 +1,53 @@
+- name: set system hostname from inventory
+  hostname: 
+    name: "{{ inventory_hostname }}"
+
+- name: Replace a localhost entry with our own
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    line: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ inventory_hostname }}.com {{ inventory_hostname }}"
+  
+- name: import repos ditionary
+  include_vars : env_vars.yml
+
+- name: populate /etc/environment
+  lineinfile:
+    dest: "/etc/environment"
+    state: present
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value}}"
+  loop: "{{ os_environment }}"
+
+- name: add keys to repo
+  apt_key:
+    state: present
+    url:  https://gitlab.com/minkebox/pimox/raw/master/dev/KEY.gpg 
+
+- apt_repository:
+    repo: "deb http://gitlab.com/minkebox/pimox/-/raw/master/ dev/"
+    state: present
+    update_cache: no
+
+- name: apt full upgrade
+  apt:
+    upgrade: full
+    update_cache: yes
+    force_apt_get: yes
+
+- name: proxmox installation
+  apt:
+    force_apt_get: yes
+    allow_unauthenticated: yes
+    name: "{{ item }}"
+    state: present
+    install_recommends: yes
+  loop:
+    - postfix 
+    - open-iscsi
+    - pve-manager 
+    - vim
+  ignore_errors: yes
+
+- name: reboot and wait for finish
+  reboot:

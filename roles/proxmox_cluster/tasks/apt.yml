@@ -1,0 +1,6 @@
+- name: create_cluster
+  shell: pvecm create homeCluster
+
+- name: set umber of votes in cluster to 2 to have possibilty to  get quorum
+  shell: pvecm expected 1
+  ignore_errors: yes

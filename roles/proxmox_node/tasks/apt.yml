@@ -1,0 +1,103 @@
+- name: import repos ditionary
+  include_vars : ../../proxmox_config/vars/pv_users.yml
+
+- name: check if config files exist
+  stat:
+    path: "/etc/pve/corosync.conf"
+  register: cluster_conf
+
+- name: stop services for rejoin
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop: 
+    - pve-cluster
+  when: cluster_conf.stat.exists
+
+- name: start the filesystem again as normal service
+  shell: killall pmxcfs || echo True
+  when: cluster_conf.stat.exists
+
+- name: Start the cluster filesystem again in local mode
+  shell: pmxcfs -l
+  when: cluster_conf.stat.exists
+
+- name: Delete the corosync configuration files
+  file: 
+    state: absent
+    path: "{{ item }}"
+  loop: 
+    - /etc/pve/corosync.conf
+    - /etc/corosync
+  when: cluster_conf.stat.exists
+
+- name: start the filesystem again as normal service
+  shell: killall pmxcfs || echo True
+  when: cluster_conf.stat.exists
+
+- name: start pve-cluster service
+  systemd:
+    name: pve-cluster
+    state: started
+  when: cluster_conf.stat.exists
+
+- name: save hostname to use it in next task (delete rejoining..)
+  debug:
+    msg: "{{ ansible_hostname }}"
+  register: current_host
+
+- name: wail after robbet to be sure that all services are up 
+  pause:
+    seconds: 30
+
+- name: start coronsync service on cluster side
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['proxmox_cluster'] }}"
+  ignore_errors: yes
+  systemd:
+    name: corosync.service
+    state: started
+
+- name: delete rejoining node from cluster on cluster side
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['proxmox_cluster'] }}"
+  shell: pvecm delnode "{{ current_host.msg }}"
+  ignore_errors: yes
+
+- name: wail after robbet to be sure that all services are up 
+  pause:
+    seconds: 30
+
+- name: start coronsync service on cluster side
+  delegate_facts: true
+  ignore_errors: yes
+  systemd:
+    name: corosync.service
+    state: stopped
+
+- name: set number of votes in cluster to 2 to have possibilty to get quorum
+  shell: pvecm expected 1
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['proxmox_cluster'] }}"
+  ignore_errors: yes
+
+- name: set number of votes in node to 2 to have possibilty to get quorum
+  shell: pvecm expected 1
+  ignore_errors: yes
+
+- name: reboot and wait for finish
+  reboot:
+    reboot_timeout: 600
+  when: not cluster_conf.stat.exists
+
+- name: join to cluster
+  shell: |
+    echo "{{ item.password }}
+    yes" | pvecm add {{ hostvars[groups['proxmox_cluster'][0]].ansible_default_ipv4.address }} --force
+  loop: "{{ pv_users }}"
+
+- name: wail after reboot to be sure that all services are up 
+  pause:
+    seconds: 30

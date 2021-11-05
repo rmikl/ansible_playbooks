@@ -1,37 +1,54 @@
+p1:
+  hosts:
+    p1:
+      ansible_host: 127.0.0.1
+      ansible_port: 2222
+      ansible_user: root
+
+p2:
+  hosts:
+    p2:
+      ansible_host: 127.0.0.1
+      ansible_port: 2223
+      ansible_user: root
+
+pi1:
+  hosts:
+    pi1:
+      ansible_host: 192.168.1.105
+      ansible_user: root
+
+pi2:
+  hosts:
+    pi2:
+      ansible_host: 192.168.1.121
+      ansible_user: root
+
+pi3:
+  hosts:
+    pi3:
+      ansible_host: 192.168.1.122
+      ansible_user: root
+
+proxmox_installation:
+  children:
+
+
+
+proxmox_cluster:
+  children:
+    p1:
+
+proxmox_node:
+  children:
+    p2:
+
+terraform_capitan:
+  children:
+
 all:
   children:
-  #  nagios-plugins:
-  #    hosts:
-  #      debian:
-  #        ansible_host: 192.168.123.5
-  #      ubuntu:
-  #        ansible_host: 192.168.123.3
-  #      centos:
-  #        ansible_host: 192.168.123.4
-  #      rhel:
-  #        ansible_host: 192.168.123.6
-  #  nrpe:
-  #    hosts:
-  #      ubuntu:
-  #        ansible_host: 192.168.123.3
-  #      centos:
-  #        ansible_host: 192.168.123.4
-  #      rhel:
-  #        ansible_host: 192.168.123.6
-  #  nagios-server:
-  #    hosts:
-  #      debian:
-  #        ansible_host: 192.168.123.5 
-  #  
-    docker:
-      hosts:
-        docker:
-          ansible_host: 192.168.123.2    
-    jenkins_gerrit:
-      hosts:
-        jenkins_gerrit:
-          ansible_host: 192.168.123.2
-#    test:
-#      hosts:
-#        test:
-#          ansible_host: 192.168.123.2
+    proxmox_installation:
+    proxmox_cluster:
+    proxmox_node:
+    terraform_capitan:

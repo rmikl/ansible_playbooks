@@ -1,2 +1,0 @@
-- name: Create jenkins users
-  command: bash -c "cat /root/.ssh/id_rsa.pub |  ssh -p 29418 admin@localhost gerrit create-account --full-name jenkins --email jenkins@jenkins --ssh-key - jenkins"
